@@ -20,7 +20,7 @@ import scala.collection.mutable.ListBuffer
 /** Do NOT rename this class, otherwise autograding will fail. **/
 object FlinkAssignmentOldSolution {
 
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  private val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
 
   def main(args: Array[String]): Unit = {
 
