@@ -29,11 +29,14 @@ class FlinkAssignmentTest {
     env.readTextFile("data/flink_commits_geo.json").map(new CommitGeoParser)
   }
 
-  def compareResults[T: Ordering](testSinkName1: String, testSinkName2: String): Unit = {
-    val firstResult = TestSink.outputs[T](testSinkName1).toList.sorted
-    val secondResult = TestSink.outputs[T](testSinkName2).toList.sorted
+  def compareResults[T: Ordering](actualSinkName: String, expectedSinkName: String): Unit = {
+    val actualResult = TestSink.outputs[T](actualSinkName).toList.sorted
+    val expectedResult = TestSink.outputs[T](expectedSinkName).toList.sorted
 
-    assertEquals("Outputs should match", firstResult, secondResult)
+    println(actualResult.last)
+    println(expectedResult.last)
+
+    assertEquals("Outputs should match", expectedResult, actualResult)
   }
 
 
@@ -45,11 +48,13 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.dummy_question(commitStream)
-      .addSink(new TestSink.CollectSink[String]("first"))
+      .addSink(new TestSink.CollectSink[String]("actual"))
     FlinkAssignmentOldSolution.dummy_question(commitStream)
-      .addSink(new TestSink.CollectSink[String]("second"))
+      .addSink(new TestSink.CollectSink[String]("expected"))
 
-    compareResults[String]("first", "second")
+    env.execute()
+
+    compareResults[String]("actual", "expected")
   }
 
   @Test
@@ -60,11 +65,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_one(commitStream)
-      .addSink(new TestSink.CollectSink[String]("first"))
+      .addSink(new TestSink.CollectSink[String]("actual"))
     FlinkAssignmentOldSolution.question_one(commitStream)
-      .addSink(new TestSink.CollectSink[String]("second"))
+      .addSink(new TestSink.CollectSink[String]("expected"))
 
-    compareResults[String]("first", "second")
+    env.execute()
+    compareResults[String]("actual", "expected")
   }
 
   @Test
@@ -75,11 +81,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_two(commitStream)
-      .addSink(new TestSink.CollectSink[String]("first"))
+      .addSink(new TestSink.CollectSink[String]("actual"))
     FlinkAssignmentOldSolution.question_two(commitStream)
-      .addSink(new TestSink.CollectSink[String]("second"))
+      .addSink(new TestSink.CollectSink[String]("expected"))
 
-    compareResults[String]("first", "second")
+    env.execute()
+    compareResults[String]("actual", "expected")
   }
 
   @Test
@@ -90,11 +97,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_three(commitStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("first"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("actual"))
     FlinkAssignmentOldSolution.question_three(commitStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("second"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("expected"))
 
-    compareResults[(String, Int)]("first", "second")
+    env.execute()
+    compareResults[(String, Int)]("actual", "expected")
   }
 
   @Test
@@ -105,11 +113,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_four(commitStream)
-      .addSink(new TestSink.CollectSink[(String, String, Int)]("first"))
+      .addSink(new TestSink.CollectSink[(String, String, Int)]("actual"))
     FlinkAssignmentOldSolution.question_four(commitStream)
-      .addSink(new TestSink.CollectSink[(String, String, Int)]("second"))
+      .addSink(new TestSink.CollectSink[(String, String, Int)]("expected"))
 
-    compareResults[(String, String, Int)]("first", "second")
+    env.execute()
+    compareResults[(String, String, Int)]("actual", "expected")
   }
 
   @Test
@@ -120,11 +129,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_five(commitStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("first"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("actual"))
     FlinkAssignmentOldSolution.question_five(commitStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("second"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("expected"))
 
-    compareResults[(String, Int)]("first", "second")
+    env.execute()
+    compareResults[(String, Int)]("actual", "expected")
   }
 
   @Test
@@ -135,11 +145,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_six(commitStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("first"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("actual"))
     FlinkAssignmentOldSolution.question_six(commitStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("second"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("expected"))
 
-    compareResults[(String, Int)]("first", "second")
+    env.execute()
+    compareResults[(String, Int)]("actual", "expected")
   }
 
   @Test
@@ -150,11 +161,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_seven(commitStream)
-      .addSink(new TestSink.CollectSink[CommitSummary]("first"))
+      .addSink(new TestSink.CollectSink[CommitSummary]("actual"))
     FlinkAssignmentOldSolution.question_seven(commitStream)
-      .addSink(new TestSink.CollectSink[CommitSummary]("second"))
+      .addSink(new TestSink.CollectSink[CommitSummary]("expected"))
 
-    compareResults[CommitSummary]("first", "second")
+    env.execute()
+    compareResults[CommitSummary]("actual", "expected")
   }
 
   @Test
@@ -166,11 +178,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_eight(commitStream, geoStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("first"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("actual"))
     FlinkAssignmentOldSolution.question_eight(commitStream, geoStream)
-      .addSink(new TestSink.CollectSink[(String, Int)]("second"))
+      .addSink(new TestSink.CollectSink[(String, Int)]("expected"))
 
-    compareResults[(String, Int)]("first", "second")
+    env.execute()
+    compareResults[(String, Int)]("actual", "expected")
   }
 
   @Test
@@ -181,11 +194,12 @@ class FlinkAssignmentTest {
     TestSink.clear()
 
     FlinkAssignmentExercise.question_nine(commitStream)
-      .addSink(new TestSink.CollectSink[(String, String)]("first"))
+      .addSink(new TestSink.CollectSink[(String, String)]("actual"))
     FlinkAssignmentOldSolution.question_nine(commitStream)
-      .addSink(new TestSink.CollectSink[(String, String)]("second"))
+      .addSink(new TestSink.CollectSink[(String, String)]("expected"))
 
-    compareResults[(String, String)]("first", "second")
+    env.execute()
+    compareResults[(String, String)]("actual", "expected")
   }
 }
 

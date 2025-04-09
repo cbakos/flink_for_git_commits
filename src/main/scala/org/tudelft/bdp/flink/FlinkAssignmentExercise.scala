@@ -62,10 +62,8 @@ object FlinkAssignmentExercise {
    */
   def question_two(input: DataStream[Commit]): DataStream[String] = {
     input
-      .filter(_.stats.isDefined)
-      .filter(_.stats.get.deletions > 30)
       .flatMap(_.files)
-      .filter(_.filename.isDefined)
+      .filter(file => file.filename.isDefined && file.deletions > 30)
       .map(_.filename.get)
   }
 
@@ -73,13 +71,31 @@ object FlinkAssignmentExercise {
    * Count the occurrences of Java and Scala files. I.e. files ending with either .scala or .java.
    * Output format: (fileExtension, #occurrences)
    */
-  def question_three(input: DataStream[Commit]): DataStream[(String, Int)] = ???
+  def question_three(input: DataStream[Commit]): DataStream[(String, Int)] = {
+    input
+      .flatMap(_.files)
+      .filter(_.filename.isDefined)
+      .map(_.filename.get)
+      .filter(file => file.endsWith(".scala") || file.endsWith(".java"))
+      .map(file => (file.split("\\.").last, 1))
+      .keyBy(extension => extension._1)
+      .reduce((x, y) => (x._1, x._2 + y._2))
+  }
 
   /**
    * Count the total amount of changes for each file status (e.g. modified, removed or added) for the following extensions: .js and .py.
    * Output format: (extension, status, count)
    */
-  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = ???
+  def question_four(input: DataStream[Commit]): DataStream[(String, String, Int)] = {
+    input
+      .flatMap(_.files)
+      .filter(file => file.filename.isDefined && file.status.isDefined)
+      .map(file => (file.filename.get, file.status.get, file.changes))
+      .filter(file => file._1.endsWith(".js") || file._1.endsWith(".py"))
+      .map(x => (x._1.split("\\.").last, x._2, x._3))
+      .keyBy(x => (x._1, x._2))
+      .reduce((x, y) => (x._1, x._2, x._3 + y._3))
+  }
 
   /**
    * For every day output the amount of commits. Include the timestamp in the following format dd-MM-yyyy; e.g. (26-06-2019, 4) meaning on the 26th of June 2019 there were 4 commits.
