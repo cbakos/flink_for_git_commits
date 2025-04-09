@@ -68,7 +68,7 @@
             <artifactId>scala-library</artifactId>
             <version>${scala.version}</version>
         <!--<scope>provided</scope>-->
-   </dependency>
+        </dependency>
 
    <!-- Add logging framework, to produce console output when running in the IDE. -->
         <!-- These dependencies are excluded from the application JAR by default. -->
@@ -83,6 +83,14 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- JUnit 4 for testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -259,6 +267,13 @@
                     <artifactId>flink-table-common</artifactId>
                     <version>${flink.version}</version>
                     <scope>compile</scope>
+                </dependency>
+                <!-- JUnit 4 for testing -->
+                <dependency>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    <version>4.12</version>
+                    <scope>test</scope>
                 </dependency>
             </dependencies>
         </profile>

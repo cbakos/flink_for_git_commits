@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$" dumb="true">
       <sourceFolder url="file://$MODULE_DIR$/src/common/scala" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/solution/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/scala" isTestSource="true" />
     </content>
   </component>
 </module>
