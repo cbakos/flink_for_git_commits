@@ -8,3 +8,5 @@ hs_err_pid*
 
 # exclude too large file, can unzip compressed version
 data/flink_commits.json
+
+target
