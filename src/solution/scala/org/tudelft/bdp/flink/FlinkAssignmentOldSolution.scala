@@ -45,10 +45,7 @@ object FlinkAssignmentOldSolution {
         .map(new CommitGeoParser)
 
     /** Use the space below to print and test your questions. */
-    //dummy_question(commitStream).print()
-    //question_seven(commitStream).print()
-    question_six(commitStream)
-      .print()
+    dummy_question(commitStream).print()
 
     /** Start the streaming environment. **/
     env.execute()
