@@ -3,7 +3,7 @@ package org.tudelft.bdp.flink
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
+import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.tudelft.bdp.flink.Protocol.{Commit, CommitGeo, CommitSummary}
 
@@ -119,7 +119,16 @@ object FlinkAssignmentExercise {
    * Compute every 12 hours the amount of small and large commits in the last 48 hours.
    * Output format: (type, count)
    */
-  def question_six(input: DataStream[Commit]): DataStream[(String, Int)] = ???
+  def question_six(input: DataStream[Commit]): DataStream[(String, Int)] = {
+    input
+      .assignAscendingTimestamps(_.commit.committer.date.getTime)
+      .filter(_.stats.isDefined)
+      .map(_.stats.get.total)
+      .map(cnt => (if (cnt > 20) "large" else "small", 1))
+      .keyBy(_._1)
+      .window(SlidingEventTimeWindows.of(Time.hours(48), Time.hours(12)))
+      .reduce((x, y) => (x._1, x._2 + y._2))
+  }
 
   /**
    * For each repository compute a daily commit summary and output the summaries with more than 20 commits and at most 2 unique committers. The CommitSummary case class is already defined.
