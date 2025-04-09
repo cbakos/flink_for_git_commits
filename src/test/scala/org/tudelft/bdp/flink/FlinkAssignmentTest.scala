@@ -33,9 +33,6 @@ class FlinkAssignmentTest {
     val actualResult = TestSink.outputs[T](actualSinkName).toList.sorted
     val expectedResult = TestSink.outputs[T](expectedSinkName).toList.sorted
 
-    println(actualResult.last)
-    println(expectedResult.last)
-
     assertEquals("Outputs should match", expectedResult, actualResult)
   }
 
@@ -53,7 +50,6 @@ class FlinkAssignmentTest {
       .addSink(new TestSink.CollectSink[String]("expected"))
 
     env.execute()
-
     compareResults[String]("actual", "expected")
   }
 

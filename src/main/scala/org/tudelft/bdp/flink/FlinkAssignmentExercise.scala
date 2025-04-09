@@ -3,6 +3,8 @@ package org.tudelft.bdp.flink
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
+import org.apache.flink.streaming.api.windowing.time.Time
 import org.tudelft.bdp.flink.Protocol.{Commit, CommitGeo, CommitSummary}
 
 /** Do NOT rename this class, otherwise autograding will fail. **/
@@ -102,7 +104,15 @@ object FlinkAssignmentExercise {
    * Make use of a non-keyed window.
    * Output format: (date, count)
    */
-  def question_five(input: DataStream[Commit]): DataStream[(String, Int)] = ???
+  def question_five(input: DataStream[Commit]): DataStream[(String, Int)] = {
+    val dateFormat = new java.text.SimpleDateFormat("dd-MM-yyyy")
+    input
+      .assignAscendingTimestamps(_.commit.committer.date.getTime)
+      .map(x => (x.commit.committer.date, 1))
+      .map(x => (dateFormat.format(x._1), x._2))
+      .windowAll(TumblingEventTimeWindows.of(Time.days(1)))
+      .reduce((x, y) => (x._1, x._2 + y._2))
+  }
 
   /**
    * Consider two types of commits; small commits and large commits whereas small: 0 <= x <= 20 and large: x > 20 where x = total amount of changes.
