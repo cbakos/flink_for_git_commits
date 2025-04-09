@@ -8,7 +8,7 @@ import org.tudelft.bdp.flink.Protocol.{Commit, CommitGeo, CommitSummary}
 /** Do NOT rename this class, otherwise autograding will fail. **/
 object FlinkAssignmentExercise {
 
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  private val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
 
   def main(args: Array[String]): Unit = {
 
@@ -49,13 +49,25 @@ object FlinkAssignmentExercise {
    * Write a Flink application which outputs the sha of commits with at least 20 additions.
    * Output format: sha
    */
-  def question_one(input: DataStream[Commit]): DataStream[String] = ???
+  def question_one(input: DataStream[Commit]): DataStream[String] = {
+    input
+      .filter(_.stats.isDefined)
+      .filter(_.stats.get.additions >= 20)
+      .map(_.sha)
+  }
 
   /**
    * Write a Flink application which outputs the names of the files with more than 30 deletions.
    * Output format:  fileName
    */
-  def question_two(input: DataStream[Commit]): DataStream[String] = ???
+  def question_two(input: DataStream[Commit]): DataStream[String] = {
+    input
+      .filter(_.stats.isDefined)
+      .filter(_.stats.get.deletions > 30)
+      .flatMap(_.files)
+      .filter(_.filename.isDefined)
+      .map(_.filename.get)
+  }
 
   /**
    * Count the occurrences of Java and Scala files. I.e. files ending with either .scala or .java.
