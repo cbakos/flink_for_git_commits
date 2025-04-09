@@ -1,4 +1,4 @@
-package util
+package org.tudelft.bdp.flink
 
 import java.util.Date
 

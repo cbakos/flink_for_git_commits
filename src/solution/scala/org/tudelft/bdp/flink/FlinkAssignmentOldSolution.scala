@@ -1,25 +1,24 @@
-import java.text.SimpleDateFormat
+package org.tudelft.bdp.flink
 
-import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.api.scala._
 import org.apache.flink.cep.functions.PatternProcessFunction
 import org.apache.flink.cep.scala.CEP
 import org.apache.flink.cep.scala.pattern.Pattern
+import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
 import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
+import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 import org.apache.flink.util.Collector
-import util.Protocol.{Commit, CommitGeo, CommitSummary, File, Stats}
-import util.{CommitGeoParser, CommitParser}
-import java.util
+import Protocol.{Commit, CommitGeo, CommitSummary, File}
 
+import java.text.SimpleDateFormat
 import scala.collection.mutable.ListBuffer
 
 /** Do NOT rename this class, otherwise autograding will fail. **/
-object FlinkAssignment {
+object FlinkAssignmentOldSolution {
 
   val env = StreamExecutionEnvironment.getExecutionEnvironment
 

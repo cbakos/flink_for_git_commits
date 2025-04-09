@@ -1,10 +1,10 @@
-package util
+package org.tudelft.bdp.flink
 
-import util.Protocol.CommitGeo
 import org.apache.flink.api.common.functions.MapFunction
 import org.json4s.NoTypeHints
 import org.json4s.ext.JavaTimeSerializers
 import org.json4s.jackson.Serialization
+import org.tudelft.bdp.flink.Protocol.CommitGeo
 
 /**
   * Parses a CommitGeo based on a JSON string.
