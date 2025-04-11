@@ -3,9 +3,11 @@ package org.tudelft.bdp.flink
 import org.apache.flink.api.common.functions.AggregateFunction
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindows, TumblingEventTimeWindows}
 import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.util.Collector
 import org.tudelft.bdp.flink.Protocol.{Commit, CommitGeo, CommitSummary}
 
 /** Do NOT rename this class, otherwise autograding will fail. **/
@@ -163,6 +165,8 @@ object FlinkAssignmentExercise {
   }
 
   /**
+   * I use an AggregateFunction approach over ProcessWindowFunction for better performance: this way, we can have
+   * incremental window processing, no need to wait for the window to finish to begin processing it.
    * IN: (repo: String, date: String, numChangesInCommit: Int, committerName: String
    * ACC: (repo: String, date: String, amountOfCommits: Int, committersMap (committerName -> numOfCommits): Map[String, Int], totalChanges: Int)
    * OUT: CommitSummary
@@ -211,7 +215,24 @@ object FlinkAssignmentExercise {
    * Hint: Find the correct join to use!
    * Output format: (continent, amount)
    */
-  def question_eight(commitStream: DataStream[Commit], geoStream: DataStream[CommitGeo]): DataStream[(String, Int)] = ???
+  def question_eight(commitStream: DataStream[Commit], geoStream: DataStream[CommitGeo]): DataStream[(String, Int)] = {
+    commitStream
+      .assignAscendingTimestamps(_.commit.committer.date.getTime)
+      .flatMap {c => c.files.map(f => (c.sha, f))}
+      .filter(_._2.filename.isDefined)
+      .map(x => (x._1, x._2.filename.get, x._2.changes))
+      .filter(_._2.endsWith(".java"))
+      .map(x => (x._1, x._3))
+      .keyBy(_._1)
+      .intervalJoin(geoStream.assignAscendingTimestamps(_.createdAt.getTime).keyBy(_.sha))
+      .between(Time.minutes(-60), Time.minutes(30))
+      .process((in1: (String, Int), in2: CommitGeo, _: ProcessJoinFunction[(String, Int), CommitGeo, (String, Int)]#Context, collector: Collector[(String, Int)]) => {
+        collector.collect((in2.continent, in1._2))
+      })
+      .keyBy(_._1)
+      .window(TumblingEventTimeWindows.of(Time.days(7)))
+      .reduce((x, y) => (x._1, x._2 + y._2))
+  }
 
   /**
    * Find all files that were added and removed within one day. Output as (repository, filename).
