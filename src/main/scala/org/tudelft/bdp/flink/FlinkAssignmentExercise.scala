@@ -1,5 +1,6 @@
 package org.tudelft.bdp.flink
 
+import org.apache.flink.api.common.functions.AggregateFunction
 import org.apache.flink.api.scala._
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
@@ -135,7 +136,7 @@ object FlinkAssignmentExercise {
    *
    * The fields of this case class:
    *
-   * repo: name of the repo.
+   * repo: name of the repo (including username for unique identification)
    * date: use the start of the window in format "dd-MM-yyyy".
    * amountOfCommits: the number of commits on that day for that repository.
    * amountOfCommitters: the amount of unique committers contributing to the repository.
@@ -145,7 +146,62 @@ object FlinkAssignmentExercise {
    * Hint: Write your own ProcessWindowFunction.
    * Output format: CommitSummary
    */
-  def question_seven(commitStream: DataStream[Commit]): DataStream[CommitSummary] = ???
+  def question_seven(commitStream: DataStream[Commit]): DataStream[CommitSummary] = {
+    val dateFormat = new java.text.SimpleDateFormat("dd-MM-yyyy")
+    commitStream
+      .assignAscendingTimestamps(_.commit.committer.date.getTime)
+      .filter(_.stats.isDefined)
+      .map(
+        x => (x.url.split("/")(4) + "/" + x.url.split("/")(5),
+        dateFormat.format(x.commit.committer.date),
+        x.stats.get.total,
+        x.commit.committer.name))
+      .keyBy(x => (x._1, x._2))
+      .window(TumblingEventTimeWindows.of(Time.days(1)))
+      .aggregate(new CommitSummaryAggregate())
+      .filter(x => (x.amountOfCommits > 20 && x.amountOfCommitters <= 2))
+  }
+
+  /**
+   * IN: (repo: String, date: String, numChangesInCommit: Int, committerName: String
+   * ACC: (repo: String, date: String, amountOfCommits: Int, committersMap (committerName -> numOfCommits): Map[String, Int], totalChanges: Int)
+   * OUT: CommitSummary
+   */
+  private class CommitSummaryAggregate extends AggregateFunction[(String, String, Int, String), (String, String, Int, Map[String, Int], Int), CommitSummary] {
+
+    override def createAccumulator(): (String, String, Int, Map[String, Int], Int) = {
+      ("", "", 0, Map[String, Int](), 0)
+    }
+
+    override def add(in: (String, String, Int, String), acc: (String, String, Int, Map[String, Int], Int)): (String, String, Int, Map[String, Int], Int) = {
+      var committersMap: Map[String, Int] = Map[String, Int]()
+      if (acc._4.contains(in._4)) {
+        committersMap = acc._4 + (in._4 -> (acc._4(in._4) + 1))
+      } else {
+        committersMap = acc._4 + (in._4 -> 1)
+      }
+      (in._1, in._2, acc._3 + 1, committersMap, acc._5 + in._3)
+    }
+
+    override def getResult(acc: (String, String, Int, Map[String, Int], Int)): CommitSummary = {
+      val maxCommits = acc._4.values.max
+      val topCommitter = acc._4
+        .filter { case (_, v) => v == maxCommits }   // get all top committers
+        .keys
+        .toList
+        .sorted                                      // alphabetical order
+        .mkString(",")                               // comma-separated
+      CommitSummary(acc._1, acc._2, acc._3, acc._4.size, acc._5, topCommitter)
+    }
+
+    override def merge(acc: (String, String, Int, Map[String, Int], Int), acc1: (String, String, Int, Map[String, Int], Int)): (String, String, Int, Map[String, Int], Int) = {
+      val combinedCommittersMap = acc1._4.foldLeft(acc._4) {
+        case (acc, (k, v)) =>
+          acc + (k -> acc.get(k).map(_ + v).getOrElse(v))  // sum values if key exists
+      }
+      (acc._1, acc._2, acc._3 + acc1._3, combinedCommittersMap, acc._5 + acc1._5)
+    }
+  }
 
   /**
    * For this exercise there is another dataset containing CommitGeo events. A CommitGeo event stores the sha of a commit, a date and the continent it was produced in.
