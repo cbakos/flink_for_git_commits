@@ -1,17 +1,20 @@
 # Flink for Git commits
 
-This is an old assignment for a course on Big Data Processing at the TU Delft.
-Below are the assignment instructions, my solution can be found within the src folder.
+This is an old assignment for a course on Big Data Processing (BDP) at the TU Delft.
+Below are the assignment instructions, my new and old solutions can be found within the src folder.
 
----
+This assignment is with Apache Flink version 1.8. 
+GitHub commits are used as a data source. 
+The raw data can be found in `/data/flink_commits.json` (after unzipping `/data/flink_commits.7zip`)  and `/data/flink_commits_geo.json`.
+The data types are defined in the `common.scala.org.tudelft.bdp.flink.Protocol` class.
 
-In this assignment you will be working with Apache Flink. Make sure you read some of their [documentation](https://flink.apache.org/) before you start.
-For this assignment we are working with GitHub commits as a data source. The raw data can be found in `/data/flink_commits.json` and `/data/flink_commits_geo.json`.
-The data types are defined in the `util.Protocol` class.
-
-## Import template
-We recommend to make use of [IntelliJ IDEA](https://www.jetbrains.com/idea/) for this assignment. As a student you can get a free license. 
-To import the template into IntelliJ: 1) Choose the `Import Project` option and pick the template directory, 2)  Choose `Import project from external model -> Maven`, 3) Choose your JDK. We recommend using JDK `1.8`, 4) Verify that it works by running the main method from the `FlinkAssignment.scala` class.
+## How to run
+It is recommend to make use of [IntelliJ IDEA](https://www.jetbrains.com/idea/).
+To import the project into IntelliJ: 
+1) Choose the `Import Project` option and pick the template directory, 
+2) Choose `Import project from external model -> Maven`, 
+3) Choose your JDK. We recommend using JDK `1.8`, 
+4) You can run the tests that compare the old and new solutions via the `test.scala.org.tudelft.bdp.flink.FlinkAssignmentTest` class.
  
 ## Contents
 

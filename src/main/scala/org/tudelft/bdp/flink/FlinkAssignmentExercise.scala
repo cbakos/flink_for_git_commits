@@ -166,7 +166,7 @@ object FlinkAssignmentExercise {
       .keyBy(x => (x._1, x._2))
       .window(TumblingEventTimeWindows.of(Time.days(1)))
       .aggregate(new CommitSummaryAggregate())
-      .filter(x => (x.amountOfCommits > 20 && x.amountOfCommitters <= 2))
+      .filter(x => x.amountOfCommits > 20 && x.amountOfCommitters <= 2)
   }
 
   /**
@@ -254,9 +254,9 @@ object FlinkAssignmentExercise {
     val input = inputStream
       .assignAscendingTimestamps(_.commit.committer.date.getTime)
       .flatMap {c => c.files.map(f => (c.url, f))}
-      .filter(x => (x._2.filename.isDefined && x._2.status.isDefined))
+      .filter(x => x._2.filename.isDefined && x._2.status.isDefined)
       .map(x => (x._1.split("/")(4) + "/" + x._1.split("/")(5), x._2.filename.get, x._2.status.get))
-      .filter(x => (x._3 == "added" || x._3 == "removed"))
+      .filter(x => x._3 == "added" || x._3 == "removed")
       .keyBy(x => (x._1, x._2))
 
 
