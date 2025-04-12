@@ -2,6 +2,9 @@ package org.tudelft.bdp.flink
 
 import org.apache.flink.api.common.functions.AggregateFunction
 import org.apache.flink.api.scala._
+import org.apache.flink.cep.functions.PatternProcessFunction
+import org.apache.flink.cep.scala.pattern.Pattern
+import org.apache.flink.cep.scala.{CEP, PatternStream}
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
@@ -9,6 +12,8 @@ import org.apache.flink.streaming.api.windowing.assigners.{SlidingEventTimeWindo
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.util.Collector
 import org.tudelft.bdp.flink.Protocol.{Commit, CommitGeo, CommitSummary}
+
+import java.util
 
 /** Do NOT rename this class, otherwise autograding will fail. **/
 object FlinkAssignmentExercise {
@@ -240,6 +245,34 @@ object FlinkAssignmentExercise {
    * Hint: Use the Complex Event Processing library (CEP).
    * Output format: (repository, filename)
    */
-  def question_nine(inputStream: DataStream[Commit]): DataStream[(String, String)] = ???
+  def question_nine(inputStream: DataStream[Commit]): DataStream[(String, String)] = {
+    val pattern = Pattern.begin[(String, String, String)]("within-one-day-removed")
+      .where(_._3 == "added")
+      .followedBy("later-removed").where(_._3 == "removed")
+      .within(Time.days(1))
+
+    val input = inputStream
+      .assignAscendingTimestamps(_.commit.committer.date.getTime)
+      .flatMap {c => c.files.map(f => (c.url, f))}
+      .filter(x => (x._2.filename.isDefined && x._2.status.isDefined))
+      .map(x => (x._1.split("/")(4) + "/" + x._1.split("/")(5), x._2.filename.get, x._2.status.get))
+      .filter(x => (x._3 == "added" || x._3 == "removed"))
+      .keyBy(x => (x._1, x._2))
+
+
+    val patternStream: PatternStream[(String, String, String)] = CEP.pattern(input, pattern)
+
+    val result: DataStream[(String, String)] = patternStream.process(
+      new PatternProcessFunction[(String, String, String), (String, String)]() {
+        override def processMatch(map: util.Map[String, util.List[(String, String, String)]],
+                                  context: PatternProcessFunction.Context,
+                                  collector: Collector[(String, String)]): Unit = {
+          val startEvent = map.get("within-one-day-removed").get(0)
+          collector.collect((startEvent._1, startEvent._2))
+        }
+      }
+    )
+    result
+  }
 
 }
